@@ -30,7 +30,7 @@ namespace GuitarChordProgressions
                 options.AddPolicy("GuitarAngularApp",
                     builder =>
                     {
-                        builder.WithOrigins("https://localhost:5001");
+                        builder.WithOrigins("https://localhost:4200", "http://localhost:4200");
                     });
             });
             services.AddControllers();
