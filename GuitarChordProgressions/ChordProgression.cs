@@ -37,4 +37,10 @@ namespace GuitarChordProgressions
         public bool Barre { get; set; }
         public int BarreStart { get; set; }
     }
+
+    public class progessionOption
+    {
+        public string[] Genres { get; set; }
+        public string[] Keys { get; set; }
+    }
 }

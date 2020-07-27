@@ -22,34 +22,50 @@ namespace GuitarChordProgressions.Controllers
 
         [EnableCors("GuitarAngularApp")]
         [HttpGet("chords")]
-        public IEnumerable<ChordProgression> GetChords()
+        public IEnumerable<ChordProgression> GetChords([FromQuery] string[] genre, [FromQuery] string[] key)
         {
-            //var rng = new Random();
-            //return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            //{
-            //    Date = DateTime.Now.AddDays(index),
-            //    TemperatureC = rng.Next(-20, 55),
-            //    Summary = Summaries[rng.Next(Summaries.Length)]
-            //})
-            //.ToArray();
-
             List<ChordProgression> tempList = new List<ChordProgression>();
 
-            tempList.Add(new ChordProgression("Country", "A", "I-IV-V-I", new GuitarChord[] { new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0),
+            if ( key.Contains("A"))
+            {
+                tempList.Add(new ChordProgression("Country", "A", "I-IV-V-I", new GuitarChord[] { new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0),
                                                                                               new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
                                                                                               new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
                                                                                               new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0)
-            }));
+                }));
+            }
 
-            tempList.Add(new ChordProgression("Country", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
+            if (genre.Contains("Jazz"))
+            {
+                tempList.Add(new ChordProgression("Country", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
                                                                                               new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
                                                                                               new GuitarChord("E maj", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
                                                                                               new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0)
-            }));
+                }));
+            }
 
             return tempList.ToArray();
 
-            // https://localhost:44377/ChordProgressions/chords
+            // https://localhost:44377/ChordProgressions/chords?genre=blank&key=blank
+        }
+
+        [EnableCors("GuitarAngularApp")]
+        [HttpGet("options")]
+        public ActionResult<progessionOption> GetOptions( )
+        {
+            progessionOption options = new progessionOption();
+
+            options.Genres = new string[] { "Jazz", "Rock", "Latin" };
+            options.Keys = new string[] { "A", "B", "C" };
+
+            if (options == null)
+            {
+                return NotFound();
+            }
+
+            return options;
+
+            // https://localhost:44377/ChordProgressions/options
         }
     }
 }
