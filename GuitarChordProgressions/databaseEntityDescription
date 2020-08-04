@@ -1,0 +1,53 @@
+Description for SQL database implemented on Azure SQL Serverless
+
+---// Entitie Tables //---
+
+---------------|| Guitar Chord ||--------------
+
+primary key: chordID ( INTEGER  )
+attributes: 
+- note ( VARCHAR [ 10 ] )
+- baseFret ( INTEGER  )
+- fingerPlacement ( VARCHAR [ 20 ] )
+- barre ( BOOLEAN )
+- barreStart ( INTEGER )
+-----------------------------------------------
+
+-----------|| Chord Progression ||-------------
+
+primary key: progressionID ( INTEGER )
+attributes:
+- genre ( VARCHAR [ 10 ] )
+- key ( VARCHAR [ 10 ] )
+- structure ( VARCHAR [ 10 ] )
+-----------------------------------------------
+
+---// Connecting Tables //---
+
+----------------------|| Progression chords ||--------------------------------
+
+primary key (composite): progressionID & chordID
+attribute:
+- chordPosition ( INTEGER ) // position of chord in overall progression //
+------------------------------------------------------------------------------
+
+---// Access Table //---
+
+--------------|| Make Chords ||----------------
+
+primary key: emailAddress ( VARCHAR [ 30 ] )
+
+---------------------------------------------------
+
+---// Stored Function //---
+
+canMakeChords( string email ) : boolean // checks make chords table for email, 
+                                        // if present then can make chords and progressions
+                                        
+---// Views //---
+
+//generated off of chord progression table
+-----------|| progression options ||-----------------------
+
+primary key( composite ): genre & key ( VARCHAR [ 30 ] )
+-----------------------------------------------------------
