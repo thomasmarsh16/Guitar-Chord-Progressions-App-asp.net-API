@@ -57,7 +57,7 @@ GO
     Note [NVARCHAR](10) NOT NULL,
     BaseFret INT NOT NULL,
     FingerPlaceMent [NVARCHAR](20) NOT NULL,
-    Barre BINARY NOT NULL,
+    Barre BIT NOT NULL,
     BarreStart INT
 );
 
