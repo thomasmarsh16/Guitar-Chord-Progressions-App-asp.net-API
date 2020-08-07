@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Data.SqlClient;
+using System.Text;
 
 namespace GuitarChordProgressions.Controllers
 {
@@ -28,7 +31,7 @@ namespace GuitarChordProgressions.Controllers
 
             if ( key.Contains("A"))
             {
-                tempList.Add(new ChordProgression("Country", "A", "I-IV-V-I", new GuitarChord[] { new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0),
+                tempList.Add(new ChordProgression("Rock", "A", "I-IV-V-I", new GuitarChord[] { new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0),
                                                                                               new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
                                                                                               new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
                                                                                               new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0)
@@ -37,7 +40,12 @@ namespace GuitarChordProgressions.Controllers
 
             if (genre.Contains("Jazz"))
             {
-                tempList.Add(new ChordProgression("Country", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
+                tempList.Add(new ChordProgression("Rock", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
+                                                                                              new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
+                                                                                              new GuitarChord("E maj", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
+                                                                                              new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0)
+                }));
+                tempList.Add(new ChordProgression("Jazz", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
                                                                                               new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
                                                                                               new GuitarChord("E maj", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
                                                                                               new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0)
@@ -66,6 +74,53 @@ namespace GuitarChordProgressions.Controllers
             return options;
 
             // https://localhost:44377/ChordProgressions/options
+        }
+
+        [EnableCors("GuitarAngularApp")]
+        [HttpGet("testSql")]
+        public async Task<IEnumerable<GuitarChord>> GetSqlAsync()
+        {
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+            builder.DataSource = "serverlesschord.database.windows.net";
+            builder.UserID = "viewprogress";
+            builder.Password = "ProgMan234";
+            builder.InitialCatalog = "progressionbank";
+
+            List<GuitarChord> tempList = new List<GuitarChord>();
+
+            using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
+            {
+                connection.Open();
+                StringBuilder sb = new StringBuilder();
+                sb.Append("SELECT * FROM dbo.Chords");
+                String sql = sb.ToString();
+
+                using( SqlCommand command = new SqlCommand(sql, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            string[] tempArray = reader.GetString(3).Split(",");
+                            tempList.Add(new GuitarChord(reader.GetString(1), 
+                                                          reader.GetInt32(2), 
+                                                   new int[] { Int32.Parse(tempArray[0]), 
+                                                                Int32.Parse(tempArray[1]),
+                                                                Int32.Parse(tempArray[2]),
+                                                                Int32.Parse(tempArray[3]),
+                                                                Int32.Parse(tempArray[4]),
+                                                                Int32.Parse(tempArray[5]) },
+                                                        reader.GetBoolean(4), 
+                                                        reader.GetInt32(5)));
+                        }
+                    }
+                }
+            }
+
+            return tempList.ToArray();
+
+            // https://localhost:44377/ChordProgressions/testSql
         }
     }
 }
