@@ -25,7 +25,7 @@ namespace GuitarChordProgressions.Controllers
 
         [EnableCors("GuitarAngularApp")]
         [HttpGet("chords")]
-        public IEnumerable<ChordProgression> GetChords([FromQuery] string[] genre, [FromQuery] string[] key)
+        public async Task<IEnumerable<ChordProgression>> GetChords([FromQuery] string[] genre, [FromQuery] string[] key)
         {
             List<ChordProgression> tempList = new List<ChordProgression>();
 
@@ -59,7 +59,7 @@ namespace GuitarChordProgressions.Controllers
 
         [EnableCors("GuitarAngularApp")]
         [HttpGet("options")]
-        public ActionResult<progessionOption> GetOptions( )
+        public async Task<ActionResult<progessionOption>> GetOptions( )
         {
             progessionOption options = new progessionOption();
 
@@ -121,6 +121,47 @@ namespace GuitarChordProgressions.Controllers
             return tempList.ToArray();
 
             // https://localhost:44377/ChordProgressions/testSql
+        }
+
+        [EnableCors("GuitarAngularApp")]
+        [HttpGet("canMake")]
+        public async Task<ActionResult<string>> getCanMake()
+        {
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+            builder.DataSource = "serverlesschord.database.windows.net";
+            builder.UserID = "viewprogress";
+            builder.Password = "ProgMan234";
+            builder.InitialCatalog = "progressionbank";
+
+            List<GuitarChord> tempList = new List<GuitarChord>();
+            string canMake = "test";
+
+            using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
+            {
+                connection.Open();
+                StringBuilder sb = new StringBuilder();
+                sb.Append("DECLARE @canMake bit= 0;");
+                sb.Append("EXECUTE @canMake = dbo.canMakeChords @useremail = \"thomasmarsh16@gmail.com\";");
+                sb.Append("SELECT @canMake;");
+
+                String sql = sb.ToString();
+
+                using (SqlCommand command = new SqlCommand(sql, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while ( reader.Read())
+                        {
+                            canMake = reader.GetBoolean(0).ToString();
+                        }
+                    }
+                }
+            }
+
+            return canMake;
+
+            // https://localhost:44377/ChordProgressions/canMake
         }
     }
 }
