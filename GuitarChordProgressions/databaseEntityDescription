@@ -113,7 +113,7 @@ BEGIN
     SET @canMake= 0;
 
     IF EXISTS(SELECT 'True' FROM dbo.ChordMaker WHERE EmailAddress = @useremail)
-        SET @useremail= 1;
+        SET @canMake= 1;
 
     RETURN @canMake;
 END;
