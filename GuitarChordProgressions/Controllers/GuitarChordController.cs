@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Data.SqlClient;
 using System.Text;
+using GuitarChordProgressions.services;
 
 namespace GuitarChordProgressions.Controllers
 {
@@ -17,10 +18,12 @@ namespace GuitarChordProgressions.Controllers
     {
 
         private readonly ILogger<ChordProgressionsController> _logger;
+        private readonly IProgressionRepository _progressionRepos;
 
-        public ChordProgressionsController(ILogger<ChordProgressionsController> logger)
+        public ChordProgressionsController(ILogger<ChordProgressionsController> logger, IProgressionRepository progressionService )
         {
             _logger = logger;
+            _progressionRepos = progressionService;
         }
 
         [EnableCors("GuitarAngularApp")]
@@ -31,7 +34,7 @@ namespace GuitarChordProgressions.Controllers
 
             if ( key.Contains("A"))
             {
-                tempList.Add(new ChordProgression("Rock", "A", "I-IV-V-I", new GuitarChord[] { new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0),
+                tempList.Add(new ChordProgression(0,"Rock", "A", "I-IV-V-I", new GuitarChord[] { new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0),
                                                                                               new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
                                                                                               new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
                                                                                               new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0)
@@ -40,12 +43,12 @@ namespace GuitarChordProgressions.Controllers
 
             if (genre.Contains("Jazz"))
             {
-                tempList.Add(new ChordProgression("Rock", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
+                tempList.Add(new ChordProgression(1,"Rock", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
                                                                                               new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
                                                                                               new GuitarChord("E maj", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
                                                                                               new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0)
                 }));
-                tempList.Add(new ChordProgression("Jazz", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
+                tempList.Add(new ChordProgression(2,"Jazz", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
                                                                                               new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
                                                                                               new GuitarChord("E maj", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
                                                                                               new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0)
@@ -59,9 +62,9 @@ namespace GuitarChordProgressions.Controllers
 
         [EnableCors("GuitarAngularApp")]
         [HttpGet("options")]
-        public async Task<ActionResult<progessionOption>> GetOptions( )
+        public async Task<ActionResult<ProgessionOption>> GetOptions( )
         {
-            progessionOption options = new progessionOption();
+            ProgessionOption options = new ProgessionOption();
 
             options.Genres = new string[] { "Jazz", "Rock", "Latin" };
             options.Keys = new string[] { "A", "B", "C" };

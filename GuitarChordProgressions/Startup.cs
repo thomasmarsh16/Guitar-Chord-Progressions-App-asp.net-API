@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using GuitarChordProgressions.services;
+using System.Data.SqlClient;
 
 namespace GuitarChordProgressions
 {
@@ -33,6 +35,7 @@ namespace GuitarChordProgressions
                         builder.WithOrigins("https://localhost:4200", "http://localhost:4200");
                     });
             });
+            services.AddSingleton<IProgressionRepository, ProgressionRepository>();
             services.AddControllers();
         }
 
@@ -57,5 +60,23 @@ namespace GuitarChordProgressions
                 endpoints.MapControllers();
             });
         }
+
+        public static async Task<ProgressionRepository> InitializeProgressionDBAsync(IConfigurationSection configurationSection)
+        {
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+            builder.DataSource = configurationSection.GetSection("DataSource").Value;
+            builder.UserID = configurationSection.GetSection("UID").Value;
+            builder.Password = configurationSection.GetSection("Pass").Value;
+            builder.InitialCatalog = configurationSection.GetSection("Catalog").Value;
+
+            using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
+            {
+                ProgressionRepository progressionService = new ProgressionRepository(connection);
+
+                return progressionService;
+            }
+        }
+
     }
 }

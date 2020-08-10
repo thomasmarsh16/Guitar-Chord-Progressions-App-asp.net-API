@@ -7,8 +7,9 @@ namespace GuitarChordProgressions
 {
     public class ChordProgression
     {
-        public ChordProgression( string genre, string key, string progressionStructure, GuitarChord [] chords )
+        public ChordProgression( int progressionID, string genre, string key, string progressionStructure, GuitarChord [] chords )
         {
+            this.ProgressionID = progressionID;
             this.Genre = genre;
             this.Key = key;
             this.ProgressionStructure = progressionStructure;
@@ -18,12 +19,25 @@ namespace GuitarChordProgressions
         public string Key { get; set; }
         public string ProgressionStructure { get; set; }
         public GuitarChord [] Chords { get; set; }
+
+        public int ProgressionID { get; set; }
     }
 
     public class GuitarChord
     {
-        public GuitarChord( string note, int baseFret, int [] fingerPlacement, bool barre, int barreStart )
+        public GuitarChord( int chordID, string note, int baseFret, int [] fingerPlacement, bool barre, int barreStart )
         {
+            this.ChordID = chordID;
+            this.Note = note;
+            this.BaseFret = baseFret;
+            this.FingerPlacements = fingerPlacement;
+            this.Barre = barre;
+            this.BarreStart = barreStart;
+        }
+
+        public GuitarChord( string note, int baseFret, int[] fingerPlacement, bool barre, int barreStart)
+        {
+            this.ChordID = 0;
             this.Note = note;
             this.BaseFret = baseFret;
             this.FingerPlacements = fingerPlacement;
@@ -36,9 +50,11 @@ namespace GuitarChordProgressions
         public int[] FingerPlacements { get; set; }
         public bool Barre { get; set; }
         public int BarreStart { get; set; }
+
+        public int ChordID { get; set; }
     }
 
-    public class progessionOption
+    public class ProgessionOption
     {
         public string[] Genres { get; set; }
         public string[] Keys { get; set; }
