@@ -64,9 +64,14 @@ namespace GuitarChordProgressions.Controllers
         [HttpGet("testInsert")]
         public async Task<ActionResult<Boolean>> testInsert()
         {
-            GuitarChord tempChord = new GuitarChord(8, "Am", 1, new int[] { -1,0,2,2,1,0 }, false, 0);
+            ChordProgression tempProgression = new ChordProgression(5, "Latin", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord(4,"C", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
+                                                                                              new GuitarChord(10, "Am", 1, new int[] { -1,0,2,2,1,0 }, false, 0),
+                                                                                              new GuitarChord(5,"E", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
+                                                                                              new GuitarChord(4,"C", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0) });
 
-            this._progressionRepos.CreateChord(tempChord);
+            //new Chord(8, "Am", 1, new int[] { -1,0,2,2,1,0 }, false, 0);
+
+            this._progressionRepos.EditProgression(tempProgression);
 
             return true;
 
@@ -77,7 +82,7 @@ namespace GuitarChordProgressions.Controllers
         [HttpGet("testDelete")]
         public async Task<ActionResult<Boolean>> testDelete()
         {
-            this._progressionRepos.DeleteChord(8);
+            this._progressionRepos.DeleteProgression(3);
 
             return true;
 
@@ -85,12 +90,12 @@ namespace GuitarChordProgressions.Controllers
         }
 
         [EnableCors("GuitarAngularApp")]
-        [HttpGet("testGetChord")]
-        public async Task<ActionResult<GuitarChord>> testGetChord()
+        [HttpGet("testGetProg")]
+        public async Task<ActionResult<ChordProgression>> TestGetProg()
         {
-            return await _progressionRepos.GetChord(1);
+            return await _progressionRepos.GetProgression(5);
 
-            // https://localhost:44377/ChordProgressions/options
+            // https://localhost:44377/ChordProgressions/testGetProg
         }
 
         [EnableCors("GuitarAngularApp")]
@@ -99,8 +104,7 @@ namespace GuitarChordProgressions.Controllers
         {
             ProgessionOption options = new ProgessionOption();
 
-            options.Genres = new string[] { "Jazz", "Rock", "Latin" };
-            options.Keys = new string[] { "A", "B", "C" };
+            options = await this._progressionRepos.GetProgessionOptions();
 
             if (options == null)
             {

@@ -9,9 +9,9 @@ namespace GuitarChordProgressions.services
     {
         Task<List<ChordProgression>> GetProgressions(string[] genres, string[] keys);
 
-        ChordProgression GetProgression(int progressionID);
+        Task<ChordProgression> GetProgression(int progressionID);
 
-        ProgessionOption GetProgessionOptions();
+        Task<ProgessionOption> GetProgessionOptions();
 
         void CreateProgression(ChordProgression progression);
 

@@ -7,6 +7,10 @@ namespace GuitarChordProgressions
 {
     public class ChordProgression
     {
+        public ChordProgression()
+        {
+        }
+
         public ChordProgression( int progressionID, string genre, string key, string progressionStructure, GuitarChord [] chords )
         {
             this.ProgressionID = progressionID;

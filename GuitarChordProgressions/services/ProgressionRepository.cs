@@ -116,33 +116,208 @@ namespace GuitarChordProgressions.services
             return tempProgs;
         }
 
-        public ChordProgression GetProgression(int progressionID)
+        public async Task<ChordProgression> GetProgression(int progressionID)
         {
-            ChordProgression tempProg = new ChordProgression(0, "none", "none", "no,structure", new GuitarChord[] { });
+            ChordProgression tempProg = new ChordProgression();
+
+            // build order 
+            StringBuilder sb = new StringBuilder();
+            sb.Append("SELECT * FROM dbo.Progressions WHERE progressionID= @progressionID");
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@progressionID", progressionID);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        List<GuitarChord> tempList = await this.GetProgressionChords(reader.GetInt32(0));
+                        // add progressions to progression array
+                        tempProg = new ChordProgression(reader.GetInt32(0),
+                                                            reader.GetString(1),
+                                                            reader.GetString(2),
+                                                            reader.GetString(3),
+                                                            tempList.ToArray()
+                                                          );
+                    }
+                }
+            }
+
+            // return progression
 
             return tempProg;
         }
 
-        public ProgessionOption GetProgessionOptions()
+        public async Task<ProgessionOption> GetProgessionOptions()
         {
             ProgessionOption options = new ProgessionOption();
+            options.Genres = new string [] { "" };
+            options.Keys = new string [] { "" };
+
+            List<string> genreList = await this.GetGenresAvailable();
+
+            List<string> keyList = await this.GetKeysAvailable();
+
+            options.Genres = genreList.ToArray();
+            options.Keys = keyList.ToArray();
 
             return options;
         }
 
         public void CreateProgression( ChordProgression progression )
         {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("INSERT INTO dbo.Progressions (Genre,NoteKey,Structure)"); // add progression to progression table
+            sb.Append(" VALUES(@genre, @noteKey, @structure);");
 
+            Dictionary<string, string> chordParameters = new Dictionary<string, string>();
+
+            if (progression.Chords != null)
+            {
+                sb.Append("INSERT INTO dbo.ProgressionChords (ProgressionFID,ChordFID,ChordPosition)"); // tie progression to chords that it uses
+                sb.Append(" VALUES ");
+
+                string valuesString = "";
+
+                valuesString += "(@progressionID, @chordID0, @chordPos0)";
+
+                chordParameters.Add("@progressionID", progression.ProgressionID.ToString());
+                chordParameters.Add("@chordID0", progression.Chords.First().ChordID.ToString());
+                chordParameters.Add("@chordPos0", 1.ToString());
+
+
+                if (progression.Chords.Length > 1)
+                {
+                    int chordPos = 1;
+                    foreach (GuitarChord chord in progression.Chords.Skip(1))
+                    {
+                        if ( chordPos != (progression.Chords.Length - 1)) // skip last chord since it is a duplicate of the first
+                        {
+                            string tempChordID = "@chordID" + chordPos;
+                            string tempChordPos = "@chordPos" + chordPos;
+
+                            valuesString += ",(@progressionID, " + tempChordID + ", " + tempChordPos + ")";
+                            chordParameters.Add(tempChordID, chord.ChordID.ToString());
+                            chordParameters.Add(tempChordPos, (chordPos + 1).ToString() );
+                            chordPos++;
+                        }
+                    }
+                }
+
+                valuesString += ";";
+
+                sb.Append(valuesString);
+            }
+
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@genre", progression.Genre);
+                command.Parameters.AddWithValue("@noteKey", progression.Key);
+                command.Parameters.AddWithValue("@structure", progression.ProgressionStructure);
+
+                foreach (string paramKey in chordParameters.Keys)
+                {
+                    command.Parameters.AddWithValue(paramKey, chordParameters[paramKey]);
+                }
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
         }
 
         public void DeleteProgression( int progressionID )
         {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("DELETE FROM dbo.ProgressionChords");
+            sb.Append(" WHERE ProgressionFID = @progressionID;");
+            sb.Append(" DELETE FROM dbo.Progressions");
+            sb.Append(" WHERE ProgressionID = @progressionID");
 
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@progressionID", progressionID);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
         }
 
         public void EditProgression(ChordProgression progression)
         {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("DELETE FROM dbo.ProgressionChords");
+            sb.Append(" WHERE ProgressionFID = @progressionID;");
+            sb.Append("UPDATE dbo.Progressions");
+            sb.Append(" SET Genre= @genre, NoteKey= @noteKey, Structure= @structure");
+            sb.Append(" WHERE ProgressionID = @progressionID;");
 
+            Dictionary<string, string> chordParameters = new Dictionary<string, string>();
+
+            if (progression.Chords != null)
+            {
+                sb.Append("INSERT INTO dbo.ProgressionChords (ProgressionFID,ChordFID,ChordPosition)"); // reinsert progression ties to chords
+                sb.Append(" VALUES ");
+
+                string valuesString = "";
+
+                valuesString += "(@progressionID, @chordID0, @chordPos0)";
+
+                chordParameters.Add("@progressionID", progression.ProgressionID.ToString());
+                chordParameters.Add("@chordID0", progression.Chords.First().ChordID.ToString());
+                chordParameters.Add("@chordPos0", 1.ToString());
+
+
+                if (progression.Chords.Length > 1)
+                {
+                    int chordPos = 1;
+                    foreach (GuitarChord chord in progression.Chords.Skip(1))
+                    {
+                        if (chordPos != (progression.Chords.Length - 1)) // skip last chord since it is a duplicate of the first
+                        {
+                            string tempChordID = "@chordID" + chordPos;
+                            string tempChordPos = "@chordPos" + chordPos;
+
+                            valuesString += ",(@progressionID, " + tempChordID + ", " + tempChordPos + ")";
+                            chordParameters.Add(tempChordID, chord.ChordID.ToString());
+                            chordParameters.Add(tempChordPos, (chordPos + 1).ToString());
+                            chordPos++;
+                        }
+                    }
+                }
+
+                valuesString += ";";
+
+                sb.Append(valuesString);
+            }
+
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@genre", progression.Genre);
+                command.Parameters.AddWithValue("@noteKey", progression.Key);
+                command.Parameters.AddWithValue("@structure", progression.ProgressionStructure);
+
+                foreach (string paramKey in chordParameters.Keys)
+                {
+                    command.Parameters.AddWithValue(paramKey, chordParameters[paramKey]);
+                }
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
         }
 
         public async Task<GuitarChord> GetChord(int chordID)
@@ -347,6 +522,50 @@ namespace GuitarChordProgressions.services
             }
 
             return commaString;
+        }
+
+        private async Task<List<string>> GetKeysAvailable()
+        {
+            List<string> tempList = new List<string>();
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("SELECT DISTINCT NoteKey FROM dbo.Progressions");
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        tempList.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            return tempList;
+        }
+
+        private async Task<List<string>> GetGenresAvailable()
+        {
+            List<string> tempList = new List<string>();
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("SELECT DISTINCT Genre FROM dbo.Progressions");
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        tempList.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            return tempList;
         }
     }
 }
