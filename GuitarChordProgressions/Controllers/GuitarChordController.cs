@@ -61,6 +61,39 @@ namespace GuitarChordProgressions.Controllers
         }
 
         [EnableCors("GuitarAngularApp")]
+        [HttpGet("testInsert")]
+        public async Task<ActionResult<Boolean>> testInsert()
+        {
+            GuitarChord tempChord = new GuitarChord(8, "Am", 1, new int[] { -1,0,2,2,1,0 }, false, 0);
+
+            this._progressionRepos.CreateChord(tempChord);
+
+            return true;
+
+            // https://localhost:44377/ChordProgressions/testInsert
+        }
+
+        [EnableCors("GuitarAngularApp")]
+        [HttpGet("testDelete")]
+        public async Task<ActionResult<Boolean>> testDelete()
+        {
+            this._progressionRepos.DeleteChord(8);
+
+            return true;
+
+            // https://localhost:44377/ChordProgressions/testDelete
+        }
+
+        [EnableCors("GuitarAngularApp")]
+        [HttpGet("testGetChord")]
+        public async Task<ActionResult<GuitarChord>> testGetChord()
+        {
+            return await _progressionRepos.GetChord(1);
+
+            // https://localhost:44377/ChordProgressions/options
+        }
+
+        [EnableCors("GuitarAngularApp")]
         [HttpGet("options")]
         public async Task<ActionResult<ProgessionOption>> GetOptions( )
         {

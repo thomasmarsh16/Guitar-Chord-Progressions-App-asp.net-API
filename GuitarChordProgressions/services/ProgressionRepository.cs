@@ -145,26 +145,114 @@ namespace GuitarChordProgressions.services
 
         }
 
-        public GuitarChord GetChord(int chordID)
+        public async Task<GuitarChord> GetChord(int chordID)
         {
-            GuitarChord tempChord = new GuitarChord(1, "none", 0, new int[] { -1, -1, -1, -1, -1, -1 }, false, 1);
+            GuitarChord tempChord = new GuitarChord();
 
+            // build order 
+            StringBuilder sb = new StringBuilder();
+            sb.Append("SELECT * FROM dbo.Chords WHERE ChordID=@chordID");
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@chordID", chordID);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        string[] tempArray = reader.GetString(3).Split(",");
+                        tempChord = new GuitarChord(reader.GetInt32(0),
+                                                    reader.GetString(1),
+                                                    reader.GetInt32(2),
+                                               new int[] { Int32.Parse(tempArray[0]),
+                                                            Int32.Parse(tempArray[1]),
+                                                            Int32.Parse(tempArray[2]),
+                                                            Int32.Parse(tempArray[3]),
+                                                            Int32.Parse(tempArray[4]),
+                                                            Int32.Parse(tempArray[5]) },
+                                                    reader.GetBoolean(4),
+                                                    reader.GetInt32(5));
+                    }
+                }
+            }
+
+            // return chord
             return tempChord;
         }
 
         public void DeleteChord(int chordID)
         {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("DELETE FROM dbo.ProgressionChords");
+            sb.Append(" WHERE ChordFID = @chordID;");
+            sb.Append(" DELETE FROM dbo.Chords");
+            sb.Append(" WHERE ChordID = @chordID");
 
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@chordID", chordID);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
         }
 
         public void EditChord(GuitarChord chord)
         {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("UPDATE dbo.Chords");
+            sb.Append(" SET Note = @note, BaseFret = @baseFret, FingerPlaceMent = @fingerPlacement, Barre = @barre, BarreStart = @barreStart");
+            sb.Append(" WHERE ChordID = @chordID");
 
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                string fingerPlacements = toCommaString(chord.FingerPlacements);
+
+                command.Parameters.AddWithValue("@chordID", chord.ChordID);
+                command.Parameters.AddWithValue("@note", chord.Note);
+                command.Parameters.AddWithValue("@baseFret", chord.BaseFret);
+                command.Parameters.AddWithValue("@fingerPlacement", fingerPlacements);
+                command.Parameters.AddWithValue("@barre", Convert.ToInt32(chord.Barre));
+                command.Parameters.AddWithValue("@barreStart", chord.BarreStart);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
         }
 
         public void CreateChord(GuitarChord chord)
         {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("INSERT INTO dbo.Chords (Note,BaseFret,FingerPlaceMent,Barre,BarreStart)");
+            sb.Append(" VALUES(@note, @baseFret, @fingerPlacement, @barre, @barreStart);");
 
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                string fingerPlacements = toCommaString(chord.FingerPlacements);
+
+                command.Parameters.AddWithValue("@note", chord.Note);
+                command.Parameters.AddWithValue("@baseFret", chord.BaseFret);
+                command.Parameters.AddWithValue("@fingerPlacement", fingerPlacements);
+                command.Parameters.AddWithValue("@barre", Convert.ToInt32(chord.Barre) );
+                command.Parameters.AddWithValue("@barreStart", chord.BarreStart);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
         }
 
         public async Task<List<GuitarChord>> GetProgressionChords( int progID )
@@ -242,6 +330,23 @@ namespace GuitarChordProgressions.services
 
             // return chords
             return chordList;
+        }
+
+        private string toCommaString(int[] rawArray)
+        {
+            string commaString = "";
+
+            if (rawArray != null && rawArray.Length > 1)
+            {
+                commaString += rawArray[0];
+
+                foreach (int record in rawArray.Skip(1))
+                {
+                    commaString += "," + record;
+                }
+            }
+
+            return commaString;
         }
     }
 }

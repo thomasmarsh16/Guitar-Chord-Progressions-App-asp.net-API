@@ -45,6 +45,10 @@ namespace GuitarChordProgressions
             this.BarreStart = barreStart;
         }
 
+        public GuitarChord()
+        {
+        }
+
         public string Note { get; set; }
         public int BaseFret { get; set; }
         public int[] FingerPlacements { get; set; }

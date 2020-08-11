@@ -19,7 +19,7 @@ namespace GuitarChordProgressions.services
 
         void EditProgression(ChordProgression progression);
 
-        public GuitarChord GetChord(int chordID);
+        public Task<GuitarChord> GetChord(int chordID);
 
         public void DeleteChord(int chordID);
 
