@@ -83,44 +83,8 @@ namespace GuitarChordProgressions.Controllers
         [HttpGet("testSql")]
         public async Task<IEnumerable<GuitarChord>> GetSqlAsync()
         {
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
 
-            builder.DataSource = "serverlesschord.database.windows.net";
-            builder.UserID = "viewprogress";
-            builder.Password = "ProgMan234";
-            builder.InitialCatalog = "progressionbank";
-
-            List<GuitarChord> tempList = new List<GuitarChord>();
-
-            using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
-            {
-                connection.Open();
-                StringBuilder sb = new StringBuilder();
-                sb.Append("SELECT * FROM dbo.Chords");
-                String sql = sb.ToString();
-
-                using( SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            string[] tempArray = reader.GetString(3).Split(",");
-                            tempList.Add(new GuitarChord(reader.GetString(1), 
-                                                          reader.GetInt32(2), 
-                                                   new int[] { Int32.Parse(tempArray[0]), 
-                                                                Int32.Parse(tempArray[1]),
-                                                                Int32.Parse(tempArray[2]),
-                                                                Int32.Parse(tempArray[3]),
-                                                                Int32.Parse(tempArray[4]),
-                                                                Int32.Parse(tempArray[5]) },
-                                                        reader.GetBoolean(4), 
-                                                        reader.GetInt32(5)));
-                        }
-                    }
-                }
-            }
-
+            List<GuitarChord> tempList = await this._progressionRepos.GetProgressionChords(1);
             return tempList.ToArray();
 
             // https://localhost:44377/ChordProgressions/testSql

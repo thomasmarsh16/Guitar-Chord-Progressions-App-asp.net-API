@@ -7,7 +7,7 @@ namespace GuitarChordProgressions.services
 {
     public interface IProgressionRepository
     {
-        async Task<List<ChordProgression>> GetProgressions(string[] genres, string[] keys);
+        Task<List<ChordProgression>> GetProgressions(string[] genres, string[] keys);
 
         ChordProgression GetProgression(int progressionID);
 
@@ -26,5 +26,9 @@ namespace GuitarChordProgressions.services
         public void EditChord(GuitarChord chord);
 
         public void CreateChord(GuitarChord chord);
+
+        Task<List<GuitarChord>> GetAllChords();
+
+        Task<List<GuitarChord>> GetProgressionChords(int progID);
     }
 }

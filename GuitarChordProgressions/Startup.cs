@@ -35,12 +35,12 @@ namespace GuitarChordProgressions
                         builder.WithOrigins("https://localhost:4200", "http://localhost:4200");
                     });
             });
-            services.AddSingleton<IProgressionRepository, ProgressionRepository>();
+            services.AddScoped<IProgressionRepository, ProgressionRepository>();
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IProgressionRepository progService)
         {
             if (env.IsDevelopment())
             {
@@ -59,23 +59,6 @@ namespace GuitarChordProgressions
             {
                 endpoints.MapControllers();
             });
-        }
-
-        public static async Task<ProgressionRepository> InitializeProgressionDBAsync(IConfigurationSection configurationSection)
-        {
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
-
-            builder.DataSource = configurationSection.GetSection("DataSource").Value;
-            builder.UserID = configurationSection.GetSection("UID").Value;
-            builder.Password = configurationSection.GetSection("Pass").Value;
-            builder.InitialCatalog = configurationSection.GetSection("Catalog").Value;
-
-            using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
-            {
-                ProgressionRepository progressionService = new ProgressionRepository(connection);
-
-                return progressionService;
-            }
         }
 
     }
