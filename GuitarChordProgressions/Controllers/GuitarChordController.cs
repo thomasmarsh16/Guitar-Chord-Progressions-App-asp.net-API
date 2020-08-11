@@ -91,6 +91,17 @@ namespace GuitarChordProgressions.Controllers
         }
 
         [EnableCors("GuitarAngularApp")]
+        [HttpGet("getProgs")]
+        public async Task<IEnumerable<ChordProgression>> GetProgAsync([FromQuery] string[] genre, [FromQuery] string[] key)
+        {
+
+            List<ChordProgression> tempList = await this._progressionRepos.GetProgressions(genre, key);
+            return tempList.ToArray();
+
+            // https://localhost:44377/ChordProgressions/getProgs?genre=Jazz&genre=Country&key=A&key=Am&key=Em
+        }
+
+        [EnableCors("GuitarAngularApp")]
         [HttpGet("canMake")]
         public async Task<ActionResult<string>> getCanMake()
         {

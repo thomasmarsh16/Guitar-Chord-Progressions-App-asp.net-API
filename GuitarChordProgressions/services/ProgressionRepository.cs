@@ -22,20 +22,21 @@ namespace GuitarChordProgressions.services
                 DataSource = configurationSection.GetSection("DataSource").Value,
                 UserID = configurationSection.GetSection("UID").Value,
                 Password = configurationSection.GetSection("Pass").Value,
-                InitialCatalog = configurationSection.GetSection("Catalog").Value
+                InitialCatalog = configurationSection.GetSection("Catalog").Value,
+                MultipleActiveResultSets = true
             };
 
             SqlConnection connection = new SqlConnection(builder.ConnectionString);
             
             this.connection = connection;
+
+            // open connection to db
+            this.connection.Open();
         }
 
         public async Task<List<ChordProgression>> GetProgressions( string [] genres, string [] keys )
         {
             List<ChordProgression> tempProgs = new List<ChordProgression>();
-
-            // open connection to db
-            this.connection.Open();
 
             // build order 
             StringBuilder sb = new StringBuilder();
@@ -49,7 +50,7 @@ namespace GuitarChordProgressions.services
             foreach( string key in keys)
             {
                 string keyParam = "@keyParam" + keyNumber;
-                keySelect += "OR Progressions.NoteKey = " + keyParam;
+                keySelect += " OR Progressions.NoteKey = " + keyParam;
 
                 keyParams.Add(keyParam, key);
                 keyNumber++;
@@ -59,7 +60,7 @@ namespace GuitarChordProgressions.services
 
             sb.Append(keySelect);
 
-            string genreSelect = "WHERE keyQuery.Genre = ''";
+            string genreSelect = " WHERE keyQuery.Genre = ''";
             int genreNumber = 0;
 
             Dictionary<string, string> genreParams = new Dictionary<string, string>();
@@ -67,7 +68,7 @@ namespace GuitarChordProgressions.services
             foreach( string genre in genres)
             {
                 string tempParam = "@genreParam" + genreNumber;
-                genreSelect += "OR keyQuery.Genre = " + tempParam;
+                genreSelect += " OR keyQuery.Genre = " + tempParam;
 
                 genreParams.Add(tempParam, genre);
                 genreNumber++;
@@ -109,7 +110,7 @@ namespace GuitarChordProgressions.services
                     }
                 }
             }
-            
+
             // return progressions
 
             return tempProgs;
@@ -170,15 +171,13 @@ namespace GuitarChordProgressions.services
         {
             List<GuitarChord> chordList = new List<GuitarChord>();
 
-            // open connection to db
-            this.connection.Open();
-
             // build order 
             StringBuilder sb = new StringBuilder();
-            sb.Append("SELECT* FROM dbo.Chords WHERE ChordID IN");
+            sb.Append("SELECT* FROM dbo.Chords AS c1 WHERE ChordID IN");
             sb.Append(" (SELECT ChordFID FROM dbo.ProgressionChords");
             sb.Append(" WHERE dbo.ProgressionChords.ProgressionFID = @progID");
-            sb.Append(" ORDER BY dbo.ProgressionChords.ChordPosition ASC OFFSET 0 ROWS);");
+            sb.Append(" ORDER BY dbo.ProgressionChords.ChordPosition ASC OFFSET 0 ROWS)");
+            sb.Append(" ORDER BY ( SELECT ChordPosition FROM dbo.ProgressionChords AS pc1 WHERE c1.ChordID = pc1.ChordFID AND pc1.ProgressionFID = @progID);");
 
             String sql = sb.ToString();
 
@@ -202,6 +201,8 @@ namespace GuitarChordProgressions.services
                                                     reader.GetBoolean(4),
                                                     reader.GetInt32(5)));
                     }
+
+                    chordList.Add(chordList.FirstOrDefault());
                 }
             }
 
@@ -211,9 +212,6 @@ namespace GuitarChordProgressions.services
         public async Task<List<GuitarChord>> GetAllChords()
         {
             List<GuitarChord> chordList = new List<GuitarChord>();
-
-            // open connection to db
-            this.connection.Open();
 
             // build order 
             StringBuilder sb = new StringBuilder();
