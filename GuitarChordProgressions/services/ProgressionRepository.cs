@@ -34,6 +34,23 @@ namespace GuitarChordProgressions.services
             this.connection.Open();
         }
 
+        // progression section
+        public async Task<ProgessionOption> GetProgessionOptions()
+        {
+            ProgessionOption options = new ProgessionOption();
+            options.Genres = new string[] { "" };
+            options.Keys = new string[] { "" };
+
+            List<string> genreList = await this.GetGenresAvailable();
+
+            List<string> keyList = await this.GetKeysAvailable();
+
+            options.Genres = genreList.ToArray();
+            options.Keys = keyList.ToArray();
+
+            return options;
+        }
+
         public async Task<List<ChordProgression>> GetProgressions( string [] genres, string [] keys )
         {
             List<ChordProgression> tempProgs = new List<ChordProgression>();
@@ -150,22 +167,6 @@ namespace GuitarChordProgressions.services
             return tempProg;
         }
 
-        public async Task<ProgessionOption> GetProgessionOptions()
-        {
-            ProgessionOption options = new ProgessionOption();
-            options.Genres = new string [] { "" };
-            options.Keys = new string [] { "" };
-
-            List<string> genreList = await this.GetGenresAvailable();
-
-            List<string> keyList = await this.GetKeysAvailable();
-
-            options.Genres = genreList.ToArray();
-            options.Keys = keyList.ToArray();
-
-            return options;
-        }
-
         public void CreateProgression( ChordProgression progression )
         {
             // build order
@@ -231,7 +232,7 @@ namespace GuitarChordProgressions.services
             }
         }
 
-        public void DeleteProgression( int progressionID )
+        public void DeleteProgression(int progressionID)
         {
             // build order
             StringBuilder sb = new StringBuilder();
@@ -320,6 +321,76 @@ namespace GuitarChordProgressions.services
             }
         }
 
+        // saved user progression manipulation
+        public void SaveProgression(int progressionID, string userEmail)
+        {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("INSERT INTO dbo.SavedProgressions (ProgressionFID,EmailAddress)");
+            sb.Append(" VALUES(@progFID, @email);");
+
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@progFID", progressionID);
+                command.Parameters.AddWithValue("@email", userEmail);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
+        }
+
+        public void DeleteSavedUserProgression(int progressionID, string userEmail)
+        {
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("DELETE FROM dbo.SavedProgressions");
+            sb.Append(" WHERE ProgressionFID = @progressionID AND EmailAddress = @userEmail;");
+
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@progressionID", progressionID);
+                command.Parameters.AddWithValue("@userEmail", userEmail);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                }
+            }
+        }
+
+        public async Task<List<ChordProgression>> GetSavedUserProgressions(string userEmail)
+        {
+            List<ChordProgression> tempProgs = new List<ChordProgression>();
+
+            // build order
+            StringBuilder sb = new StringBuilder();
+            sb.Append("SELECT ProgressionFID FROM dbo.SavedProgressions");
+            sb.Append(" WHERE EmailAddress = @userEmail;");
+            String sql = sb.ToString();
+
+            using (SqlCommand command = new SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@userEmail", userEmail);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        ChordProgression tempChordProg = await this.GetProgression(reader.GetInt32(0));
+                        tempProgs.Add(tempChordProg);
+                    }
+                }
+            }
+                
+            return tempProgs;
+        }
+
+        // chord section
+
         public async Task<GuitarChord> GetChord(int chordID)
         {
             GuitarChord tempChord = new GuitarChord();
@@ -390,7 +461,7 @@ namespace GuitarChordProgressions.services
 
             using (SqlCommand command = new SqlCommand(sql, connection))
             {
-                string fingerPlacements = toCommaString(chord.FingerPlacements);
+                string fingerPlacements = ToCommaString(chord.FingerPlacements);
 
                 command.Parameters.AddWithValue("@chordID", chord.ChordID);
                 command.Parameters.AddWithValue("@note", chord.Note);
@@ -416,7 +487,7 @@ namespace GuitarChordProgressions.services
 
             using (SqlCommand command = new SqlCommand(sql, connection))
             {
-                string fingerPlacements = toCommaString(chord.FingerPlacements);
+                string fingerPlacements = ToCommaString(chord.FingerPlacements);
 
                 command.Parameters.AddWithValue("@note", chord.Note);
                 command.Parameters.AddWithValue("@baseFret", chord.BaseFret);
@@ -507,22 +578,7 @@ namespace GuitarChordProgressions.services
             return chordList;
         }
 
-        private string toCommaString(int[] rawArray)
-        {
-            string commaString = "";
-
-            if (rawArray != null && rawArray.Length > 1)
-            {
-                commaString += rawArray[0];
-
-                foreach (int record in rawArray.Skip(1))
-                {
-                    commaString += "," + record;
-                }
-            }
-
-            return commaString;
-        }
+        // utility functions
 
         private async Task<List<string>> GetKeysAvailable()
         {
@@ -566,6 +622,23 @@ namespace GuitarChordProgressions.services
             }
 
             return tempList;
+        }
+
+        private string ToCommaString(int[] rawArray)
+        {
+            string commaString = "";
+
+            if (rawArray != null && rawArray.Length > 1)
+            {
+                commaString += rawArray[0];
+
+                foreach (int record in rawArray.Skip(1))
+                {
+                    commaString += "," + record;
+                }
+            }
+
+            return commaString;
         }
     }
 }

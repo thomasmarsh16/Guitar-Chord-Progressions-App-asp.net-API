@@ -27,33 +27,10 @@ namespace GuitarChordProgressions.Controllers
         }
 
         [EnableCors("GuitarAngularApp")]
-        [HttpGet("chords")]
-        public async Task<IEnumerable<ChordProgression>> GetChords([FromQuery] string[] genre, [FromQuery] string[] key)
+        [HttpGet("progressions")]
+        public async Task<IEnumerable<ChordProgression>> GetProgressions([FromQuery] string[] genre, [FromQuery] string[] key)
         {
-            List<ChordProgression> tempList = new List<ChordProgression>();
-
-            if ( key.Contains("A"))
-            {
-                tempList.Add(new ChordProgression(0,"Rock", "A", "I-IV-V-I", new GuitarChord[] { new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0),
-                                                                                              new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
-                                                                                              new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
-                                                                                              new GuitarChord("A min", 1, new int[] { -1, 0, 2, 2, 1, 0 }, false, 0)
-                }));
-            }
-
-            if (genre.Contains("Jazz"))
-            {
-                tempList.Add(new ChordProgression(1,"Rock", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
-                                                                                              new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
-                                                                                              new GuitarChord("E maj", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
-                                                                                              new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0)
-                }));
-                tempList.Add(new ChordProgression(2,"Jazz", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
-                                                                                              new GuitarChord("D maj", 1, new int[] { -1, -1, 0, 2, 3, 2 }, false, 0),
-                                                                                              new GuitarChord("E maj", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
-                                                                                              new GuitarChord("C maj", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0)
-                }));
-            }
+            List<ChordProgression> tempList = await _progressionRepos.GetProgressions(genre,key);
 
             return tempList.ToArray();
 
@@ -61,46 +38,41 @@ namespace GuitarChordProgressions.Controllers
         }
 
         [EnableCors("GuitarAngularApp")]
-        [HttpGet("testInsert")]
-        public async Task<ActionResult<Boolean>> testInsert()
+        [HttpPost("saveprogression")]
+        public async Task<ActionResult<Boolean>> SaveProgression([FromForm] string progression, [FromForm] string email)
         {
-            ChordProgression tempProgression = new ChordProgression(5, "Latin", "C", "I-IV-V-I", new GuitarChord[] { new GuitarChord(4,"C", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0),
-                                                                                              new GuitarChord(10, "Am", 1, new int[] { -1,0,2,2,1,0 }, false, 0),
-                                                                                              new GuitarChord(5,"E", 1, new int[] {  0, 2, 2, 1, 0, 0 }, false, 0),
-                                                                                              new GuitarChord(4,"C", 1, new int[] { -1, 3, 2, 0, 1, 0 }, false, 0) });
-
-            //new Chord(8, "Am", 1, new int[] { -1,0,2,2,1,0 }, false, 0);
-
-            this._progressionRepos.EditProgression(tempProgression);
+            _progressionRepos.SaveProgression( Int32.Parse(progression), email);
 
             return true;
 
-            // https://localhost:44377/ChordProgressions/testInsert
+            // https://localhost:44377/ChordProgressions/saveprogression POST action
         }
 
         [EnableCors("GuitarAngularApp")]
-        [HttpGet("testDelete")]
-        public async Task<ActionResult<Boolean>> testDelete()
+        [HttpGet("getsavedprogressions")]
+        public async Task<IEnumerable<ChordProgression>> GetSavedProgressions([FromQuery] string email )
         {
-            this._progressionRepos.DeleteProgression(3);
+            List<ChordProgression> tempList = await _progressionRepos.GetSavedUserProgressions(email);
+
+            return tempList.ToArray();
+
+            // https://localhost:44377/ChordProgressions/getsavedprogressions?email=test@gmail.com
+        }
+
+        [EnableCors("GuitarAngularApp")]
+        [HttpPost("removesavedprogressions")]
+        public async Task<ActionResult<Boolean>> RemoveSavedProgressions([FromForm] int progressionID, [FromForm] string email)
+        {
+            _progressionRepos.DeleteSavedUserProgression(progressionID, email);
 
             return true;
 
-            // https://localhost:44377/ChordProgressions/testDelete
-        }
-
-        [EnableCors("GuitarAngularApp")]
-        [HttpGet("testGetProg")]
-        public async Task<ActionResult<ChordProgression>> TestGetProg()
-        {
-            return await _progressionRepos.GetProgression(5);
-
-            // https://localhost:44377/ChordProgressions/testGetProg
+            // https://localhost:44377/ChordProgressions/removesavedprogressions
         }
 
         [EnableCors("GuitarAngularApp")]
         [HttpGet("options")]
-        public async Task<ActionResult<ProgessionOption>> GetOptions( )
+        public async Task<ActionResult<ProgessionOption>> GetOptions()
         {
             ProgessionOption options = new ProgessionOption();
 
@@ -114,69 +86,6 @@ namespace GuitarChordProgressions.Controllers
             return options;
 
             // https://localhost:44377/ChordProgressions/options
-        }
-
-        [EnableCors("GuitarAngularApp")]
-        [HttpGet("testSql")]
-        public async Task<IEnumerable<GuitarChord>> GetSqlAsync()
-        {
-
-            List<GuitarChord> tempList = await this._progressionRepos.GetProgressionChords(1);
-            return tempList.ToArray();
-
-            // https://localhost:44377/ChordProgressions/testSql
-        }
-
-        [EnableCors("GuitarAngularApp")]
-        [HttpGet("getProgs")]
-        public async Task<IEnumerable<ChordProgression>> GetProgAsync([FromQuery] string[] genre, [FromQuery] string[] key)
-        {
-
-            List<ChordProgression> tempList = await this._progressionRepos.GetProgressions(genre, key);
-            return tempList.ToArray();
-
-            // https://localhost:44377/ChordProgressions/getProgs?genre=Jazz&genre=Country&key=A&key=Am&key=Em
-        }
-
-        [EnableCors("GuitarAngularApp")]
-        [HttpGet("canMake")]
-        public async Task<ActionResult<string>> getCanMake()
-        {
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
-
-            builder.DataSource = "serverlesschord.database.windows.net";
-            builder.UserID = "viewprogress";
-            builder.Password = "ProgMan234";
-            builder.InitialCatalog = "progressionbank";
-
-            List<GuitarChord> tempList = new List<GuitarChord>();
-            string canMake = "test";
-
-            using (SqlConnection connection = new SqlConnection(builder.ConnectionString))
-            {
-                connection.Open();
-                StringBuilder sb = new StringBuilder();
-                sb.Append("DECLARE @canMake bit= 0;");
-                sb.Append("EXECUTE @canMake = dbo.canMakeChords @useremail = \"thomasmarsh16@gmail.com\";");
-                sb.Append("SELECT @canMake;");
-
-                String sql = sb.ToString();
-
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while ( reader.Read())
-                        {
-                            canMake = reader.GetBoolean(0).ToString();
-                        }
-                    }
-                }
-            }
-
-            return canMake;
-
-            // https://localhost:44377/ChordProgressions/canMake
         }
     }
 }
