@@ -24,12 +24,17 @@ attributes:
 
 ---// Connecting Tables //---
 
-----------------------|| Progression chords ||--------------------------------
+----------------------|| Progression chords ||-----------------------------------------
 
-primary key (composite): progressionID & chordID
+primary key (composite): progressionID ( INTEGER ) & chordID ( INTEGER )
 attribute:
 - chordPosition ( INTEGER ) // position of chord in overall progression //
-------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
+
+----------------------|| User saved progressions ||------------------------------------
+
+primary key (composite): EmailAddress ( VARCHAR [ 30 ] ) & ProgressionFID ( INTEGER )
+---------------------------------------------------------------------------------------
 
 ---// Access Table //---
 
@@ -117,4 +122,18 @@ BEGIN
 
     RETURN @canMake;
 END;
+GO
+
+IF OBJECT_ID('dbo.SavedProgressions', 'U') IS NOT NULL
+DROP TABLE dbo.SavedProgressions
+GO
+
+ CREATE TABLE dbo.SavedProgressions
+(
+    EmailAddress [NVARCHAR](35) NOT NULL,
+    ProgressionFID INT NOT NULL,
+    CONSTRAINT PK_UserProgression PRIMARY KEY (EmailAddress, ProgressionFID),
+    CONSTRAINT FK_UserProgression_Progression FOREIGN KEY (ProgressionFID) REFERENCES dbo.Progressions(ProgressionID)
+);
+
 GO
