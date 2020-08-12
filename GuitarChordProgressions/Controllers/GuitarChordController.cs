@@ -39,9 +39,9 @@ namespace GuitarChordProgressions.Controllers
 
         [EnableCors("GuitarAngularApp")]
         [HttpPost("saveprogression")]
-        public async Task<ActionResult<Boolean>> SaveProgression([FromForm] string progression, [FromForm] string email)
+        public async Task<ActionResult<Boolean>> SaveProgression([FromForm] string progressionID, [FromForm] string email)
         {
-            _progressionRepos.SaveProgression( Int32.Parse(progression), email);
+            _progressionRepos.SaveProgression( Int32.Parse(progressionID), email);
 
             return true;
 
@@ -61,9 +61,9 @@ namespace GuitarChordProgressions.Controllers
 
         [EnableCors("GuitarAngularApp")]
         [HttpPost("removesavedprogressions")]
-        public async Task<ActionResult<Boolean>> RemoveSavedProgressions([FromForm] int progressionID, [FromForm] string email)
+        public async Task<ActionResult<Boolean>> RemoveSavedProgressions([FromForm] string progressionID, [FromForm] string email)
         {
-            _progressionRepos.DeleteSavedUserProgression(progressionID, email);
+            _progressionRepos.DeleteSavedUserProgression(Int32.Parse(progressionID), email);
 
             return true;
 
