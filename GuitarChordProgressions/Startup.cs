@@ -32,7 +32,7 @@ namespace GuitarChordProgressions
                 options.AddPolicy("GuitarAngularApp",
                     builder =>
                     {
-                        builder.WithOrigins("https://localhost:4200", "https://thomasmarsh16.github.io/GuitarChordProgressionsAppAngularFront/");
+                        builder.WithOrigins("https://localhost:4200", "https://thomasmarsh16.github.io");
                     });
             });
             services.AddScoped<IProgressionRepository, ProgressionRepository>();
@@ -40,7 +40,7 @@ namespace GuitarChordProgressions
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IProgressionRepository progService)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
